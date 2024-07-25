@@ -1,15 +1,13 @@
 node {
-    def scannerHome
-
     stage('Clone repository') {
         checkout scm
     }
     stage('Build image') {
         app = docker.build("admin/flask-example")
     }
-    stage('SonarQube analysis') {
-        scannerHome = tool 'SonarQubeScanner'
-        withSonarQubeEnv('SonarQube') {
+    stage('SonarQubeScanner') {
+        def scannerHome = tool 'SonarQubeScanner'
+        withSonarQubeEnv('SonarQubeScanner') {
             sh """${scannerHome}/bin/sonar-scanner \
                   -Dsonar.projectKey=demo-project \
                   -Dsonar.sources=. \
