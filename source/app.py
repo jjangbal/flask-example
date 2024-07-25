@@ -1,12 +1,13 @@
-# app.py
-from flask import Flask, render_template
+from flask import Flask, render_template, request
+from markupsafe import Markup
 
-#Flask 객체 인스턴스 생성
+# Flask 객체 인스턴스 생성
 app = Flask(__name__)
 
-@app.route('/') # 접속하는 url
+@app.route('/')  # 접속하는 url
 def index():
-  return render_template('index.html')
+    aaa = request.args.get('aaa', '')
+    return render_template('index.html', aaa=Markup(aaa))
 
-if __name__=="__main__":
-  app.run(host="0.0.0.0", port="5000", debug=True)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port="5000", debug=True)
