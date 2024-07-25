@@ -1,0 +1,36 @@
+node {
+    def scannerHome
+
+    stage('Clone repository') {
+        checkout scm
+    }
+    stage('Build image') {
+        app = docker.build("admin/flask-example")
+    }
+     stage('SonarQubeScanner') {
+         def scannerHome = tool 'SonarQubeScanner';
+         withSonarQubeEnv('SonarQubeScanner') {
+             sh """${scannerHome}/bin/sonar-scanner \
+                             -Dsonar.projectKey=demo-project \
+                             -Dsonar.sources=. \
+                             -Dsonar.host.url=http://10.0.2.15:9000 \
+                             -Dsonar.login=squ_df45d305404d1b39cfea3ed1127c3815b68e360e
+             """
+          }
+      }
+    }
+    stage('Quality Gate check') {
+        timeout(time: 5, unit: 'MINUTES') {
+            def qg = waitForQualityGate()
+            if (qg.status != 'OK') {
+                error "Pipeline aborted due to quality gate failure: ${qg.status}"
+            }
+        }
+    }
+    stage('Push image') {
+        docker.withRegistry('https://127.0.0.1/', 'harbor_cred') {
+            app.push("${env.BUILD_NUMBER}")
+            app.push("latest")
+        }
+    }
+}
